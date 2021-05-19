@@ -17,7 +17,7 @@ clean:
 run_test: $(NAME) test
 	./test $(NAME)
 
-test.exe: test.o $(NAME)
+test: test.o $(NAME)
 	$(CC) -o test test.o -L. -l$(PROJECT)
 
 test.o: test.cpp
