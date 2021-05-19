@@ -14,10 +14,10 @@ $(PROJECT).o: $(PROJECT).cpp $(PROJECT).h
 clean:
 	rm -rf *.o $(NAME) test TEST_FILE.txt
 	
-run_test: $(NAME) test
+test: $(NAME) run_test
 	./test $(NAME)
 
-test: test.o $(NAME)
+run_test: test.o $(NAME)
 	$(CC) -o test test.o -L. -l$(PROJECT)
 
 test.o: test.cpp
