@@ -1,0 +1,27 @@
+CC=g++
+CFLAGS=-Wall -std=c++17 -O2
+PROJECT=matrix
+NAME=lib$(PROJECT).a
+
+all: $(NAME)
+
+$(NAME): $(PROJECT).o
+	ar rc $(NAME) $(PROJECT).o
+
+$(PROJECT).o: $(PROJECT).cpp $(PROJECT).h 
+	$(CC) $(CFLAGS) -c $(PROJECT).cpp
+
+clean:
+	rm -rf *.o $(NAME) test.exe TEST_FILE.txt
+	
+run_test: $(NAME) test
+	./test $(NAME)
+
+test.exe: test.o $(NAME)
+	$(CC) -o test test.o -L. -l$(PROJECT)
+
+test.o: test.cpp
+	$(CC) -c test.cpp
+	
+vgcheck: $(NAME) test
+	valgrind --tool=memcheck --leak-check=full -s ./test $(NAME)
