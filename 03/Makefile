@@ -12,7 +12,7 @@ $(PROJECT).o: $(PROJECT).cpp $(PROJECT).h
 	$(CC) $(CFLAGS) -c $(PROJECT).cpp
 
 clean:
-	rm -rf *.o $(NAME) test.exe TEST_FILE.txt
+	rm -rf *.o $(NAME) test TEST_FILE.txt
 	
 run_test: $(NAME) test
 	./test $(NAME)
