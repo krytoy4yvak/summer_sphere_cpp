@@ -34,7 +34,7 @@ std::vector<tcase> testCases =
 
 int main(int argc, char* argv[]){
     if (argc != 1){
-        printf("test.exe run incorrectly\n");
+        printf("test run incorrectly\n");
         return 1;
     }
 
