@@ -20,15 +20,6 @@ public:
     template <class Func, class... Args>
     auto exec(Func func, Args... args) -> std::future<decltype(func(args...))>
     {
-
-        //copying of a task is deleted
-        // std::packaged_task<decltype(func(args...))()> new_task([func, args...]() 
-        //                                                     {
-        //                                                          return func(args...); 
-        //                                                     });
-        // tasks.push(std::move(new_task)));
-
-        //using pointer to packeged_task
         auto new_task = std::make_shared<std::packaged_task<decltype(func(args...))()>>([func, args...]() 
                                                                                         {
                                                                                             return func(args...); 
