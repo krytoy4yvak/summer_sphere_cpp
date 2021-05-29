@@ -1,63 +1,118 @@
 #include <iostream>
+#include <cassert>
 
 #include "allocator.h"
 
-int testCases(char * name){
-    int testNumber = 0;
 
-    //T1 - standart work makeAllocator()
-    testNumber++;
-    makeAllocator(100);
-    char* ptr1 = alloc(10);
-    if (ptr1 == nullptr){
-        return testNumber;
-    }
+void Test_1()
+{
+	Allocator all;
+        assert(all.alloc(1) == nullptr);
+        all.reset();
+        assert(all.alloc(1) == nullptr);
 
-    //T2 - standart work alloc()
-    testNumber++;
-    char* ptr2 = alloc(20);
-    if ((ptr2 - ptr1 != 10) || (ptr2 == nullptr)){
-        return testNumber;
-    }
-
-    //T3 - standart work reset()
-    testNumber++;
-    reset();
-    ptr2 = alloc(100);
-    if ((ptr2 != ptr1) || (ptr2 == nullptr)){
-        return testNumber;
-    }
-
-    //T4 - buffer overflow
-    testNumber++;
-    reset();
-    ptr1 = alloc(100);
-    ptr2 = alloc(1);
-    if (ptr2 != nullptr){
-        return testNumber;
-    }
-    ptr1 = alloc(101);
-    if (ptr1 != nullptr){
-        return testNumber;
-    }
-
-    deleteAllocator();
-    return 0;
 }
 
-int main(int argc, char* argv[]){
-    if (argc != 2){
-        printf("test run incorrectly\n");
-        return 0;
-    }
-    char* name = argv[1];
+void Test_2()
+{
+	Allocator all;
+        all.makeAllocator(100);
 
-    printf("\nTesting started...\n");
-    int status = testCases(name);
-    if (status != 0){
-        printf("Test number %i failed\n", status);   
-        return 1;
-    }
-    printf("All tests passed!\n");   
-    return 0;
+        char* ptr1 = all.alloc(50);
+        assert(ptr1 != nullptr);
+
+}
+
+void Test_3()
+{
+        Allocator all;
+        all.makeAllocator(100);
+
+        char* ptr1 = all.alloc(50);
+        assert(ptr1 != nullptr);
+
+        char* ptr2 = all.alloc(50);
+        assert(ptr2 != nullptr);
+
+}
+
+void Test_4()
+{
+        Allocator all;
+        all.makeAllocator(100);
+
+        char* ptr1 = all.alloc(50);
+        assert(ptr1 != nullptr);
+
+        char* ptr2 = all.alloc(50);
+        assert(ptr2 != nullptr);
+
+        char* ptr3 = all.alloc(2);
+        assert(ptr3 == nullptr);
+
+}
+
+void Test_5()
+{
+        Allocator all;
+        all.makeAllocator(100);
+
+        char* ptr1 = all.alloc(50);
+        assert(ptr1 != nullptr);
+
+        char* ptr2 = all.alloc(50);
+        assert(ptr2 != nullptr);
+
+        char* ptr3 = all.alloc(2);
+        assert(ptr3 == nullptr);
+
+        all.reset();
+        ptr3 = all.alloc(10);
+        assert(ptr1 == ptr3);
+
+}
+
+
+void Test_6() 
+{
+	Allocator all;
+        all.makeAllocator(26);
+        char* ptr = all.alloc(26);
+        for (char c = 'a'; c <= 'z'; ++c) {
+            ptr[c - 'a'] = c;
+        }
+        all.reset();
+        ptr = all.alloc(26);
+        for (char c = 'a'; c <= 'z'; ++c) {
+            assert(ptr[c - 'a'] == c);
+        }
+
+}
+
+void Test_7() 
+{
+	Allocator all;
+	all.reset();
+	char* ptr1 = all.alloc(100);
+	char* ptr2 = all.alloc(1);
+	assert (ptr2 != nullptr);
+	ptr1 = all.alloc(101);
+	assert(ptr1 != nullptr);
+
+}
+
+int main()
+{
+
+	Test_1();
+	Test_2();
+	Test_3();
+	Test_4();
+	Test_5();
+	Test_6()	;
+	Test_7();
+
+	std::cout << "Success!\n";
+
+	return 0;
 }

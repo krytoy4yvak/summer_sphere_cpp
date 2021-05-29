@@ -1,35 +1,39 @@
 #include <functional>
+#include "allocator.h"
 
-char* ptrStart = nullptr;
-char* ptrCurr = nullptr;
-long unsigned int maxBufSize = 0;
-
-void makeAllocator(size_t maxSize){
-    ptrCurr = new char[maxSize];
-    ptrStart = ptrCurr;
-    maxBufSize = maxSize;
-    return;
+Allocator::Allocator()
+    : buffSize(0)
+    , buff(nullptr)
+    , curSize(0)
+{
 }
 
-char* alloc(size_t size){
-    if (ptrCurr == nullptr){
+Allocator::~Allocator() {
+    if (buff != nullptr) {
+        delete[] buff;
+    }
+}
+
+
+void Allocator::makeAllocator(size_t maxSize) {
+    if (buff != nullptr) {
+        delete[] buff;
+    }
+    buff = new char[maxSize];
+    buffSize = maxSize;
+    curSize = 0;
+}
+
+char* Allocator::alloc(size_t size) {
+    if ((buff == nullptr) || (size + curSize > buffSize)) {
         return nullptr;
     }
-    std::ptrdiff_t filled = ptrCurr - ptrStart;
-    if (filled + size > maxBufSize){
-        return nullptr;
-    }
-    char* ptrReturn = ptrCurr;
-    ptrCurr += size;
-    return ptrReturn;
+    size_t oldSize = curSize;
+    curSize += size;
+    return buff + oldSize;
 }
 
-void reset(){
-    ptrCurr = ptrStart;
-    return;
+void Allocator::reset() {
+    curSize = 0;
 }
-
-void deleteAllocator(){
-    delete[] ptrStart;
-    return;
-}
+   

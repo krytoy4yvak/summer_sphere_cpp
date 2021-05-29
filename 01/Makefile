@@ -22,5 +22,3 @@ test: test.o liballocator.a
 
 test.o: test.cpp
 	$(CC) test.cpp -c
-	
-	
