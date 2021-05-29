@@ -14,10 +14,10 @@ clean:
 	rm -rf *.o $(NAME) test
 	
 
-run_test: $(NAME) test
+test: $(NAME) run_test
 	./test $(NAME)
 
-test: test.o liballocator.a
+run_test: test.o liballocator.a
 	$(CC) -o test test.o -L. -lallocator
 
 test.o: test.cpp

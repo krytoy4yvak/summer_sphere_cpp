@@ -95,9 +95,9 @@ void Test_7()
 	all.reset();
 	char* ptr1 = all.alloc(100);
 	char* ptr2 = all.alloc(1);
-	assert (ptr2 != nullptr);
+	assert (ptr2 == nullptr);
 	ptr1 = all.alloc(101);
-	assert(ptr1 != nullptr);
+	assert(ptr1 == nullptr);
 
 }
 
