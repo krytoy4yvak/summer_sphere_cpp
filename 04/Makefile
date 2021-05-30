@@ -1,12 +1,15 @@
 CC=g++
-CFLAGS=-Wall -std=c++17 -O2
-PROJECT=serializer
+CFLAGS=-Wall -std=c++17
+PROJECT=bigint
 LIBNAME=lib$(PROJECT).a
 
 all: $(LIBNAME)
 
-$(LIBNAME): serializer.h deserializer.h 
-	ar rc $(LIBNAME) serializer.h deserializer.h
+$(LIBNAME): $(PROJECT).o
+	ar rc $(LIBNAME) $(PROJECT).o
+
+$(PROJECT).o: $(PROJECT).cpp $(PROJECT).h 
+	$(CC) $(CFLAGS) -c $(PROJECT).cpp
 
 clean:
 	rm -rf *.o $(LIBNAME) test
@@ -15,10 +18,7 @@ test: $(LIBNAME) run_test
 	./test $(LIBNAME)
 
 run_test: test.o $(LIBNAME)
-	$(CC) -o test test.o -L -l$(PROJECT)
+	$(CC) $(CFLAGS) -o test test.o -L. -l$(PROJECT)
 
 test.o: test.cpp
-	$(CC) $(CFLAGS) -c test.cpp
-	
-vgcheck: $(LIBNAME) test
-	valgrind --tool=memcheck --leak-check=full -s ./test $(LIBNAME)
+	$(CC) -c test.cpp
