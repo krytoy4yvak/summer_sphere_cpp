@@ -37,6 +37,25 @@ struct Data
 };
 
 
+struct FakeData
+{
+    uint64_t a;
+    uint64_t b;
+    uint64_t c;
+
+    template <class Serializer>
+    Error serialize(Serializer& serializer)
+    {
+        return serializer(a, b, c);
+    }
+
+    template <class Deserializer>
+    Error deserialize(Deserializer& deserializer)
+    {
+        return deserializer(a, b, c);
+    }
+};
+
 void Test_1()
 {
     Data x(956, true, 865);
@@ -156,6 +175,7 @@ void Test_7()
     Deserializer d(s);
     assert (d.load(y) == Error::CorruptedArchive);
 }
+
 
 
 int main()
