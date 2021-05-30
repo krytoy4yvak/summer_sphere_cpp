@@ -1,15 +1,27 @@
-#ifndef ALLOCATOR_H
-#define ALLOCATOR_H
+#pragma once
 
-using borderCallback = void (*)();
-using onNumberCallback = void (*)(long long);
-using onStringCallback = void (*)(const char *);
+#include <iostream>
+#include <functional>
 
-void register_on_begin_callback(borderCallback);
-void register_on_end_callback(borderCallback);
-void register_on_number_callback(onNumberCallback);
-void register_on_string_callback(onStringCallback);
 
-void parse(const char *);
+class TokenParser
+{
+public:
+    TokenParser();
+    void SetStartCallback(std::function<void()>);
+    void SetFinishCallback(std::function<void()>);
+    void SetDigitTokenCallback(std::function<void(int)>);
+    void SetStringTokenCallback(std::function<void(const std::string&)>);
 
-#endif
+    void ParseStream(std::istream& is);
+    void ParseString(const std::string& str);
+
+private:
+    std::function<void()> StartCallback;
+    std::function<void()> FinishCallback;
+    std::function<void(int)> DigitTokenCallback;
+    std::function<void(const std::string&)> StringTokenCallback;
+
+    bool IsNumber(const std::string& str);
+    int StringToInt(const std::string& str);
+};

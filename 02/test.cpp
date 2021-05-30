@@ -1,123 +1,214 @@
 #include <iostream>
-#include <fstream>
+#include <vector>
 #include <string>
-#include <cstring>
+#include <functional>
+#include <cassert>
 
 #include "parser.h"
 
+// Make some tests
 
-int testCases(char * name){
-    int testNumber = 0;
-    const char * text = "TEST STRING: 1231 adsd 22wd\n4\t 52d31231231231233!";
-    std::ofstream oFile ( "TEST_FILE.txt" ) ; 
-    std::string textFromFile;
-    std::string line;
-    std::ifstream fin;
 
-    //T1 - standart work
-    testNumber++;
-    parse(text);
 
-    //T2 - standart work for register_on_begin_callback()
-    testNumber++;
-    register_on_begin_callback([](){
-        std::ofstream fout("TEST_FILE.txt"); 
-        fout << 2; 
-        fout.close(); 
-    });
-    parse(text);
-    fin.open("TEST_FILE.txt");
-    if (fin.is_open())
-    {
-        while (getline(fin, line))
-            textFromFile = textFromFile + line;   
-    }
-    fin.close();  
-    if (textFromFile != "2")
-        return testNumber;
-    register_on_begin_callback([](){});
-    textFromFile = "";
+void Test_1()
+{
+	TokenParser tp;
+	bool start, finish, digit, string;
+	start = false;
+	finish = false;
+	digit = false;
+	string = false;
 
-    //T3 - standart work for register_on_end_callback()
-    testNumber++;
-    register_on_end_callback([](){
-        std::ofstream fout("TEST_FILE.txt"); 
-        fout << 3; 
-        fout.close(); 
-    });
-    parse(text);
-    fin.open("TEST_FILE.txt");
-    if (fin.is_open())
-    {
-        while (getline(fin, line)){
-            textFromFile = textFromFile + line;   
-        }
-    }
-    fin.close();  
-    if (textFromFile != "3")
-        return testNumber;
-    register_on_end_callback([](){});
-    textFromFile = "";
-    
-    //T4 - standart work for register_on_number_callback()
-    testNumber++;
-    register_on_number_callback([](long long number){
-        std::ofstream fout("TEST_FILE.txt"); 
-        fout << number; 
-        fout.close(); 
-    });
-    parse(text);
-    fin.open("TEST_FILE.txt");
-    if (fin.is_open())
-    {
-        while (getline(fin, line)){
-            textFromFile = textFromFile + line;   
-        }
-    }
-    fin.close();  
-    if (textFromFile != "4")
-        return testNumber;
-    register_on_number_callback([](long long x){});
-    textFromFile = "";
+        tp.SetStartCallback([&start] () { start = true; });
+        tp.SetDigitTokenCallback([&digit] (int num) { digit = true; });
+        tp.SetStringTokenCallback([&string] (const std::string& str) { string = true; });
 
-    //T5 - standart work for register_on_string_callback()
-    testNumber++;
-    register_on_string_callback([](const char * str){
-        std::ofstream fout("TEST_FILE.txt"); 
-        fout << str; 
-        fout.close(); 
-    });
-    parse(text);
-    fin.open("TEST_FILE.txt");
-    if (fin.is_open())
-    {
-        while (getline(fin, line)){
-            textFromFile = textFromFile + line;   
-        }
-    }
-    fin.close();  
-    if (textFromFile != "52d31231231231233!")
-        return testNumber;
-    register_on_string_callback([](const char * x){});
-    textFromFile = "";
+        tp.ParseString("");
+        assert(start && !finish);
+        assert(!(digit || string));
 
-    remove( "TEST_FILE.txt" );
-    return 0;
 }
 
-int main(int argc, char* argv[]){
-    if (argc != 2){
-        printf("test run incorrectly\n");
-        return 0;
-    }
-    char* name = argv[1];
 
-    printf("\nTesting started...\n");
-    int status = testCases(name);
-    if (status != 0){
-        printf("Test number %i failed\n", status);   
-        return 1;
-    }
-    printf("All tests passed!\n");   
+
+void Test_2()
+{
+	TokenParser tp;
+	bool start, finish, digit, string;
+	start = false;
+	finish = false;
+	digit = false;
+	string = false;
+
+        tp.SetStartCallback([&start] () { start = true; });
+        tp.SetDigitTokenCallback([&digit] (int num) { digit = true; });
+        tp.SetStringTokenCallback([&string] (const std::string& str) { string = true; });
+        tp.SetFinishCallback([&finish] () { finish = true; });
+
+        tp.ParseString("");
+        assert(start && finish);
+        assert(!(digit || string));
+
+}
+
+
+
+void Test_3()
+{
+	TokenParser tp;
+	bool start, finish, digit, string;
+	start = false;
+	finish = false;
+	digit = false;
+	string = false;
+
+        tp.SetStartCallback([&start] () { start = true; });
+        tp.SetDigitTokenCallback([&digit] (int num) { digit = true; });
+        tp.SetStringTokenCallback([&string] (const std::string& str) { string = true; });
+        tp.SetFinishCallback([&finish] () { finish = true; });
+
+	tp.ParseString("MyTest3");
+	assert(string && !digit);
+
+
+}
+
+
+void Test_4()
+{
+	TokenParser tp;
+	bool start, finish, digit, string;
+	start = false;
+	finish = false;
+	digit = false;
+	string = false;
+
+        tp.SetStartCallback([&start] () { start = true; });
+        tp.SetDigitTokenCallback([&digit] (int num) { digit = true; });
+        tp.SetStringTokenCallback([&string] (const std::string& str) { string = true; });
+        tp.SetFinishCallback([&finish] () { finish = true; });
+        tp.ParseString("Some word");
+
+        tp.ParseString("637573");
+        assert(string && digit);
+
+
+}
+
+void Test_5()
+{
+	TokenParser tp;
+	int num = 0;
+	std::string str = "";
+	tp.SetDigitTokenCallback([&num] (int value) { num += value; });
+	tp.SetStringTokenCallback([&str] (const std::string& string) { str += string; });
+	tp.ParseString("765 Test, 235  cases ");
+	assert(num == 1000);
+	assert(str == "Test,cases");
+
+
+
+}
+
+
+void Test_6()
+{
+        TokenParser tp;
+        int num;
+
+        tp.SetDigitTokenCallback([&num] (int value) { num = 987; });
+        tp.ParseString("9876543");
+        assert(num == 987);
+}
+
+void Test_7()
+{
+        TokenParser tp;
+        int num;
+
+        tp.SetDigitTokenCallback([&num] (int value) { num = -987; });
+        tp.ParseString("9876543");
+        assert(num == -987);
+}
+
+
+void Test_8()
+{
+	TokenParser tp;
+	std::string str;
+	tp.SetStringTokenCallback([&str] (const std::string& string) { str = "Not clear it!"; });
+	tp.ParseString("jipehsogfigew");
+	assert(str == "Not clear it!");
+}
+
+
+void Test_9()
+{
+        TokenParser tp;
+        std::string str;
+        tp.SetStringTokenCallback([&str] (const std::string& string) { str = "Not clear it!"; });
+        tp.ParseString("jipehsogfigew");
+        tp.SetStringTokenCallback([&str] (const std::string& string) { str = "It`s a trap!"; });
+        tp.ParseString("jipehsogfigew");
+        assert(str == "It`s a trap!");
+
+}
+
+
+
+void Test_10()
+{
+        TokenParser tp;
+        int digitCounter;
+        int stringCounter;
+
+        tp.SetStartCallback([&digitCounter, &stringCounter] () { digitCounter = stringCounter = 0; });
+        tp.SetDigitTokenCallback([&digitCounter] (int value) { ++digitCounter; });
+        tp.SetStringTokenCallback([&stringCounter] (const std::string& str) { ++stringCounter; });
+
+        tp.ParseString("It is the set of 25 error type and 654 minor errors ");
+        assert(digitCounter == 2);
+        assert(stringCounter == 10);
+
+
+}
+
+
+void Test_11()
+{
+        TokenParser tp;
+        int digitCounter;
+        int stringCounter;
+
+        tp.SetStartCallback([&digitCounter, &stringCounter] () { digitCounter = stringCounter = 0; });
+        tp.SetDigitTokenCallback([&digitCounter] (int value) { ++digitCounter; });
+        tp.SetStringTokenCallback([&stringCounter] (const std::string& str) { ++stringCounter; });
+
+
+        tp.ParseString(
+            "Thus, it does not rely on the corruption model probabilities.\n"
+            "The Online method assigns tags on-the-fly to each sentence independently and hence runs in O(N)." );
+        assert(digitCounter == 0);
+        assert(stringCounter == 25);
+
+
+}
+
+
+int main()
+{
+	Test_1();
+	Test_2();
+	Test_3();
+	Test_4();
+	Test_5();
+	Test_6();
+	Test_7();
+	Test_8();
+	Test_9();
+	Test_10();
+	Test_11();
+    
+    std::cout << "TESTS OK" << std::endl;
     return 0;
 }

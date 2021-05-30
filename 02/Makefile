@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-Wall -std=c++17
+CFLAGS= --std=c++17
 NAME=libparser.a
 
 all: $(NAME)
@@ -17,8 +17,8 @@ test: $(NAME) run_test
 	./test $(NAME)
 
 run_test: test.o libparser.a
-	$(CC) $(CFLAGS) -o test test.o -L. -lparser
+	$(CC) $(CFLAG) -o test test.o -L. -lparser
 
 test.o: test.cpp
-	$(CC) -c test.cpp
+	$(CC) $(CFLAGS) -c test.cpp
 	

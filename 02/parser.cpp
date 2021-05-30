@@ -1,97 +1,76 @@
-#include <iostream>
-#include <sstream>
-#include <cstring>
-#include <string>
-#include <map>
-
 #include "parser.h"
 
-borderCallback onBegin_callback;
-borderCallback onEnd_callback;
-onNumberCallback onNumber_callback;
-onStringCallback onString_callback;
+#include <sstream>
 
-void register_on_begin_callback (borderCallback function){
-    onBegin_callback = function ;
-}
 
-void register_on_end_callback (borderCallback function){
-    onEnd_callback = function ;
-}
-
-void register_on_number_callback (onNumberCallback function){
-    onNumber_callback = function ;
-}
-
-void register_on_string_callback (onStringCallback function){
-    onString_callback = function ;
+TokenParser::TokenParser()
+    : StartCallback(nullptr)
+    , FinishCallback(nullptr)
+    , DigitTokenCallback(nullptr)
+    , StringTokenCallback(nullptr)
+{
 }
 
 
-void onBegin(){
-    if (onBegin_callback != nullptr){
-        onBegin_callback();
-    }
-}
-
-void onEnd(){
-    if (onEnd_callback != nullptr){
-        onEnd_callback();
-    }
-}
-
-void onNumber(long long number){
-    if (onNumber_callback != nullptr){
-        onNumber_callback(number);
-    }
-}
-
-void onString(char * str){
-    if (onString_callback != nullptr){
-        onString_callback(str);
-    }
-}
-
-
-void parse(const char * text){
-    const size_t buffer_size = strlen(text);
-    char *word = new char[buffer_size];
-    std::stringstream x;       
-    x << text;              
-    std::string number = "";  
- 
-    onBegin();
-    while (x >> word){
-        char tokenCat;
-        char c = word[0];
-        if (isdigit(c)){
-            tokenCat = 'n';
-            number = c;
-            size_t word_size = strlen(word);
-            for (size_t i = 1; i < word_size; i++){
-                c = word[i];
-                if ( !isdigit(c) && (tokenCat != 's') ) {
-                    tokenCat = 's';
-                    break;
-                }
-                number = number + c;
-            } 
-        } else {
-            tokenCat = 's';
-        }
-
-        switch (tokenCat)
-        {
-        case 's':
-            onString(word);
-            break;
-        case 'n':
-            onNumber(atoi(number.c_str()));
-            break;
-        default:
-            continue;
+bool TokenParser::IsNumber(const std::string& str) {
+    for (char c: str) {
+        if (!isdigit(c)) {
+            return false;
         }
     }
-    onEnd();
-    delete[] word;
+    return true;
+}
+
+
+int TokenParser::StringToInt (const std::string& str) {
+    std::stringstream stream(str);
+    int result;
+    stream >> result;
+    return result;
+}
+
+
+void TokenParser::SetStartCallback(std::function<void()> func) {
+    StartCallback = func;
+}
+
+
+void TokenParser::SetFinishCallback(std::function<void()> func) {
+    FinishCallback = func;
+}
+
+
+void TokenParser::SetDigitTokenCallback(std::function<void(int)> func) {
+    DigitTokenCallback = func;
+}
+
+
+void TokenParser::SetStringTokenCallback(std::function<void(const std::string&)> func) {
+    StringTokenCallback = func;
+}
+
+
+void TokenParser::ParseString(const std::string& str) {
+    std::stringstream sstream(str + "\0");
+    ParseStream(sstream);
+}
+
+
+void TokenParser::ParseStream(std::istream& is) {
+    if (StartCallback != nullptr) { 
+        StartCallback();
+    }
+
+    std::string token;
+    while (is >> token) {
+        if (IsNumber(token) && DigitTokenCallback != nullptr) {
+            DigitTokenCallback(StringToInt(token));
+        } else if (StringTokenCallback != nullptr) {
+            StringTokenCallback(token);
+        }
+    }
+    
+    if (FinishCallback != nullptr) {
+        FinishCallback();
+    }
 }
