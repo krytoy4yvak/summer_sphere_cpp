@@ -1,24 +1,13 @@
-CC=g++
-CFLAGS=-Wall -std=c++17 -O2
-PROJECT=format
-LIBNAME=lib$(PROJECT).a
 
-all: $(LIBNAME)
+CC = g++ --std=c++17
 
-$(LIBNAME): $(PROJECT).o  
-	ar rc $(LIBNAME) $(PROJECT).o
+all: test
 
-$(PROJECT).o: $(PROJECT).cpp $(PROJECT).h
-	$(CC) $(CFLAGS) -c $(PROJECT).cpp 
+run_test: test.cpp format.h
+	$(CC) test.cpp -o test
 
-clean:
-	rm -rf *.o $(LIBNAME) test
-	
-test: $(LIBNAME) run_test
+test: run_test
 	./test
 
-run_test: test.o $(PROJECT).o 
-	$(CC) $(CFLAGS) -o test test.o $(PROJECT).o
-
-test.o: test.cpp $(PROJECT).h
-	$(CC) -c test.cpp
+clean:
+	rm -f test
