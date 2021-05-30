@@ -1,36 +1,44 @@
-#ifndef ALLOCATOR_H
-#define ALLOCATOR_H
+#pragma once
 
-class matrixRow
+#include <iostream>
+#include <cstddef>
+#include <stdexcept>
+
+class Row
 {
-private:
-    int* row;
-    size_t sizeOfRow;
 public:
-    matrixRow();
-    matrixRow(int* row, size_t sizeOfRow);
-    int& operator[](size_t i) const;
+    Row() = delete;
+    Row(size_t size);
+    ~Row();
+
+    int &operator[](size_t ind);
+    int operator[](size_t ind) const;
+
+private:
+    int *buf;
+    size_t size_;
 };
 
 class Matrix
 {
-private:
-    size_t rows;
-    size_t cols;
-    int * dataArray;
 public:
-    Matrix(size_t rows, size_t cols);
+    Matrix(size_t rows, size_t columns);
     ~Matrix();
-    Matrix(Matrix const& copy);
-    void ones() const;
-    void print() const;
+
+    Row &operator[](size_t row);
+    const Row& operator[](size_t row) const;
+
     size_t getRows() const;
     size_t getColumns() const;
-    Matrix& operator*=(const int scalar);
-    const Matrix operator*=(const int scalar) const;
-    const matrixRow operator[](size_t idxOfRow) const;
-    bool operator==(const Matrix& other) const;
-    bool operator!=(const Matrix& other) const;
-};
 
-#endif
+    Matrix& operator*=(int value);
+    Matrix operator+(const Matrix &other) const;
+    bool operator==(const Matrix &other) const;
+    bool operator!=(const Matrix &other) const;
+    friend std::ostream &operator<<(std::ostream &os, const Matrix &matrix);
+
+private:
+    size_t rows_;
+    size_t columns_;
+    Row *values;
+};

@@ -12,16 +12,13 @@ $(PROJECT).o: $(PROJECT).cpp $(PROJECT).h
 	$(CC) $(CFLAGS) -c $(PROJECT).cpp
 
 clean:
-	rm -rf *.o $(NAME) test TEST_FILE.txt
+	rm -rf *.o $(NAME) test
 	
 test: $(NAME) run_test
 	./test $(NAME)
 
 run_test: test.o $(NAME)
-	$(CC) -o test test.o -L. -l$(PROJECT)
+	$(CC) $(CFLAGS) -o test test.o -L. -l$(PROJECT)
 
 test.o: test.cpp
 	$(CC) -c test.cpp
-	
-vgcheck: $(NAME) test
-	valgrind --tool=memcheck --leak-check=full -s ./test $(NAME)

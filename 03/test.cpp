@@ -1,126 +1,197 @@
 #include <iostream>
+#include <cstdio>
+#include <cassert>
+#include <string>
 #include "matrix.h"
 
-
-int testCases(char * name){
-    Matrix m0(4,5);
-    Matrix m1(4,5);
-    Matrix m2(4,5);
-    Matrix m3(2,3);
-    const Matrix cm(4,5);
-    m0.ones();
-    m1.ones();
-    m2.ones();
-    m3.ones();
-    cm.ones();
-    int testNumber = 0;
-
-    //T1 - getRows(), getColumns()
-    testNumber++;
-    if ((m0.getRows() != 4) || (m0.getColumns() != 5))
-        return testNumber;
-    if ((cm.getRows() != 4) || (cm.getColumns() != 5))
-        return testNumber;
-
-    //T2 - operator[][]
-    testNumber++;
-    m0[1][2] = 42;
-    int temp = m0[1][2];
-    if (temp != 42)
-        return testNumber;
-    cm[1][2] = 42;
-    temp = cm[1][2];
-    if (temp != 42)
-        return testNumber;
-
-    //T3 - operator*=
-    testNumber++;
-    m0 *= 3;
-    if ((m0[0][0] != 3) || (m0[1][2] != 42*3))
-        return testNumber;
-    cm *= 3;
-    if ((cm[0][0] != 3) || (cm[1][2] != 42*3))
-        return testNumber;
-
-    //T4 - operator==
-    testNumber++;
-    if (!(m1 == m2) || !(m1 == m1))
-        return testNumber;
-    if (!(cm == m0) || !(cm == cm))
-        return testNumber;
-
-    //T5 - operator!=
-    testNumber++;
-    m1[0][1] = 24;
-    if (!(m1 != m2) || !(m2 != m3))
-        return testNumber;
-    if (!(m1 != cm) || !(cm != m3))
-        return testNumber;
-
-    //T6 - out_of_range for Matrix
-    testNumber++;
-    bool ok = false;
-    try
+void fillMatrix(Matrix &matr)
+{
+    for (size_t i = 0; i < matr.getRows(); ++i)
     {
-        m0[99][0];
+        for (size_t j = 0; j < matr.getColumns(); ++j)
+        {
+            matr[i][j] = i + j;
+        }
     }
-    catch (const std::out_of_range)    
-    { 
-        ok = true;
-    }
-    if (!ok)
-        return testNumber;
-    try
-    {
-        cm[99][0];
-    }
-    catch (const std::out_of_range)    
-    { 
-        ok = true;
-    }
-    if (!ok)
-        return testNumber;
-
-    //T7 - out_of_range for matrixRow
-    testNumber++;
-    ok = false;
-    try
-    {
-        m0[0][99];
-    }
-    catch (const std::out_of_range)    
-    { 
-        ok = true;
-    }
-    if (!ok)
-        return testNumber;
-    try
-    {
-        cm[0][99];
-    }
-    catch (const std::out_of_range)    
-    { 
-        ok = true;
-    }
-    if (!ok)
-        return testNumber;
-
-    return 0;
 }
 
-int main(int argc, char* argv[]){
-    if (argc != 2){
-        printf("test run incorrectly\n");
-        return 0;
+void fillMatrixWithValue(Matrix &matr, int value)
+{
+    for (size_t i = 0; i < matr.getRows(); ++i)
+    {
+        for (size_t j = 0; j < matr.getColumns(); ++j)
+        {
+            matr[i][j] = value;
+        }
     }
-    char* name = argv[1];
+}
 
-    printf("\nTesting started...\n");
-    int status = testCases(name);
-    if (status != 0){
-        printf("Test number %i failed\n", status);   
-        return 1;
-    }
-    printf("All tests passed!\n");   
+// Some tests for Matrix class
+
+
+void Test_1()
+{
+	Matrix matr(2, 2);
+	bool res = false;
+	try
+	{
+	   matr[0][2] = 5;
+	}
+	catch (const std::out_of_range &e)
+	{
+	   res = true;
+	}
+	assert(res==true);
+
+}
+
+void Test_2()
+{
+	Matrix matr(2, 2);
+	bool res = false;
+	try
+	{
+	    matr[10][1] = 5;
+	}
+	catch (const std::out_of_range &e)
+	{
+	   res = true;
+	}
+	assert(res==true);
+
+}
+
+void Test_3()
+{
+	Matrix matr(2, 2);
+	bool res = false;
+	try
+	{
+	    matr[1][1] = 5;
+	}
+	catch (const std::out_of_range &e)
+	{
+	   res = true;
+	}
+	assert(res==false);
+
+}
+
+void Test_4()
+{
+	Matrix matrix1(2, 3);
+	Matrix matrix2(2, 2);
+	bool res = false;
+	try
+	{
+	    matrix1 + matrix2;
+	}
+	catch (const std::logic_error &e)
+	{
+	   res = true;
+	}
+	assert(res==true);
+
+}
+
+void Test_5()
+{
+	Matrix matrix(123, 321);
+	assert((matrix.getRows() == 123) && (matrix.getColumns() == 321));
+
+}
+
+void Test_6()
+{
+	Matrix matrix(2,2);
+	matrix[0][0] = 1;
+	matrix[0][1] = 2;
+	matrix[1][0] = 3;
+	matrix[1][1] = 4;
+
+	assert(matrix[0][0] == 1);
+	assert(matrix[0][1] == 2);
+	assert(matrix[1][0] == 3);
+	assert(matrix[1][1] == 4);
+
+}
+
+
+void Test_7()
+{
+        Matrix matr1(100, 100);
+        Matrix matr2(100, 100);
+        fillMatrix(matr1);
+        fillMatrix(matr2);
+        assert(matr1 == matr2);
+        matr1[40][50] = 45;
+        assert(matr1 != matr2);
+        matr2[40][50] = 45;
+        assert(matr1 == matr2);
+
+}
+
+void Test_8()
+{
+        Matrix matr1(5, 5);
+        Matrix matr2(5, 5);
+        fillMatrixWithValue(matr1, 7);
+        fillMatrixWithValue(matr2, 21);
+        matr1 *= 3;
+        assert(matr1 == matr2);
+
+}
+
+
+void Test_9()
+{
+        Matrix matr1(5, 5);
+        Matrix matr2(5, 5);
+        Matrix matr3(5, 5);
+
+        fillMatrixWithValue(matr1, 10);
+        fillMatrixWithValue(matr2, 15);
+        fillMatrixWithValue(matr3, 25);
+        assert(matr3 == matr1 + matr2);
+
+        matr2 *= -1;
+        assert(matr1 == matr3 + matr2);
+
+}
+
+
+void Test_10()
+{
+	Matrix matr(1, 1);
+	matr[0][0] = -242;
+	assert(matr[0][0] == -242);
+	
+
+}
+
+void Test_11()
+{
+	Matrix matr(1, 1);
+	assert((matr.getRows() == 1) && (matr.getColumns() == 1));
+	
+
+}
+
+int main()
+{
+	Test_1();
+	Test_2();
+	Test_3();
+	Test_4();
+	Test_5();
+	Test_6();
+	Test_7();
+	Test_8();
+	Test_9();
+	Test_10();
+	Test_11();
+
+
+    std::cout << "TESTS OK";
     return 0;
 }
