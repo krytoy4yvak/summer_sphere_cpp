@@ -4,7 +4,7 @@
 #include <string>
 #include "matrix.h"
 
-void fillMatrix(Matrix &matr)
+void pull_my_matrix(Matrix &matr)
 {
     for (size_t i = 0; i < matr.getRows(); ++i)
     {
@@ -15,7 +15,7 @@ void fillMatrix(Matrix &matr)
     }
 }
 
-void fillMatrixWithValue(Matrix &matr, int value)
+void pulling_my_matrix(Matrix &matr, int value)
 {
     for (size_t i = 0; i < matr.getRows(); ++i)
     {
@@ -121,8 +121,8 @@ void Test_7()
 {
         Matrix matr1(100, 100);
         Matrix matr2(100, 100);
-        fillMatrix(matr1);
-        fillMatrix(matr2);
+        pull_my_matrix(matr1);
+        pull_my_matrix(matr2);
         assert(matr1 == matr2);
         matr1[40][50] = 45;
         assert(matr1 != matr2);
@@ -135,8 +135,8 @@ void Test_8()
 {
         Matrix matr1(5, 5);
         Matrix matr2(5, 5);
-        fillMatrixWithValue(matr1, 7);
-        fillMatrixWithValue(matr2, 21);
+        pulling_my_matrix(matr1, 7);
+        pulling_my_matrix(matr2, 21);
         matr1 *= 3;
         assert(matr1 == matr2);
 
@@ -149,9 +149,9 @@ void Test_9()
         Matrix matr2(5, 5);
         Matrix matr3(5, 5);
 
-        fillMatrixWithValue(matr1, 10);
-        fillMatrixWithValue(matr2, 15);
-        fillMatrixWithValue(matr3, 25);
+        pulling_my_matrix(matr1, 10);
+        pulling_my_matrix(matr2, 15);
+        pulling_my_matrix(matr3, 25);
         assert(matr3 == matr1 + matr2);
 
         matr2 *= -1;
