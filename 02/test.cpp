@@ -195,6 +195,65 @@ void Test_11()
 }
 
 
+void Test_12()
+{
+        TokenParser tp;
+        double num;
+
+        tp.SetDigitTokenCallback([&num] (double value) { num = 2e-64; });
+        tp.ParseString("565754");
+        assert(num == 2e-64);
+
+
+}
+
+void Test_13()
+{
+        TokenParser tp;
+        double num;
+
+        tp.SetDigitTokenCallback([&num] (double value) { num = 2e64; });
+        tp.ParseString("565754");
+        assert(num == 2e64);
+
+
+}
+
+
+void Test_14()
+{
+	TokenParser tp;
+	std::string str = "";
+	tp.SetStringTokenCallback([&str] (const std::string& string) { str += string; });
+	tp.ParseString("");
+	assert(str == "");
+
+
+}
+
+
+void Test_15()
+{
+	TokenParser tp;
+	int num = 0;
+	tp.SetDigitTokenCallback([&num] (int value) { num += value; });
+	tp.ParseString("1");
+	assert(num == 1);
+
+
+}
+
+void Test_16()
+{
+	TokenParser tp;
+	std::string str = "";
+	tp.SetStringTokenCallback([&str] (const std::string& string) { str += string; });
+	tp.ParseString("                          	 	 	 	 ");
+	assert(str == "");
+
+
+}
+
 int main()
 {
 	Test_1();
@@ -208,6 +267,11 @@ int main()
 	Test_9();
 	Test_10();
 	Test_11();
+	Test_12();
+	Test_13();
+	Test_14();
+	Test_15();
+
     
     std::cout << "TESTS OK" << std::endl;
     return 0;

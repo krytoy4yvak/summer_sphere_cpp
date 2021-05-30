@@ -22,9 +22,9 @@ bool TokenParser::IsNumber(const std::string& str) {
 }
 
 
-int TokenParser::StringToInt (const std::string& str) {
+uint64_t TokenParser::StringToDouble (const std::string& str) {
     std::stringstream stream(str);
-    int result;
+    uint64_t result;
     stream >> result;
     return result;
 }
@@ -64,7 +64,7 @@ void TokenParser::ParseStream(std::istream& is) {
     std::string token;
     while (is >> token) {
         if (IsNumber(token) && DigitTokenCallback != nullptr) {
-            DigitTokenCallback(StringToInt(token));
+            DigitTokenCallback(StringToDouble(token));
         } else if (StringTokenCallback != nullptr) {
             StringTokenCallback(token);
         }

@@ -19,9 +19,9 @@ public:
 private:
     std::function<void()> StartCallback;
     std::function<void()> FinishCallback;
-    std::function<void(int)> DigitTokenCallback;
+    std::function<void(double)> DigitTokenCallback;
     std::function<void(const std::string&)> StringTokenCallback;
 
     bool IsNumber(const std::string& str);
-    int StringToInt(const std::string& str);
+    uint64_t StringToDouble(const std::string& str);
 };
