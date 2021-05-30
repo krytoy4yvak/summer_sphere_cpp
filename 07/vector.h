@@ -1,369 +1,335 @@
+#pragma once
 #include <iostream>
-#include <iterator>
+#include <memory>
 
 template <class T>
-class Iterator
-    : public std::iterator<std::random_access_iterator_tag, T>
+class Allocator
 {
-    T *ptr_;
 public:
-    Iterator(T *ptr)
-        : ptr_(ptr) {}
-    
-    bool operator==(const Iterator<T> &other) const
-    {
-        return ptr_ == other.ptr_;
+    using value_type = T;
+    using pointer = T*;
+    using size_type = size_t;
+
+    pointer allocate(size_type count) {
+        pointer new_data = static_cast<pointer>(malloc(sizeof(value_type) * count));
+        if (new_data == nullptr) {
+            throw std::bad_alloc();
+        }
+        return new_data;
     }
 
-    bool operator!=(const Iterator<T> &other) const
-    {
-        return !(*this == other);
+    void deallocate(pointer ptr, size_type count) noexcept {
+        free(ptr);
     }
 
-    bool operator<(const Iterator<T> &other) const
-    {
-        return (ptr_ < other.ptr_);
+    template<typename ... Args>
+    void construct(pointer xptr, Args&&... args) {
+        new(xptr) T(std::forward<Args>(args)...);
     }
 
-    bool operator>(const Iterator<T> &other) const
-    {
-        return !(*this < other);
+    void destroy(pointer xptr) noexcept {
+        xptr->~T();
     }
-
-    bool operator<=(const Iterator<T> &other) const
-    {
-        return (ptr_ <= other.ptr);
-    }
-
-    bool operator>=(const Iterator<T> &other) const
-    {
-        return !(*this <= other);
-    }
-
-    T &operator*() const
-    {
-        return *ptr_;
-    }
-
-    T *operator->() const
-    {
-        return ptr_;
-    }
-
-    T &operator[](size_t i) const
-    {
-        return *(ptr_ + i);
-    }
-
-    void swap(Iterator &it_1, Iterator &it_2)
-    {
-        T *tmp = it_1.ptr_;
-        it_1.ptr_ = it_2.ptr_;
-        it_2.ptr = tmp;
-    }
-
-    Iterator &operator+(size_t i)
-    {
-        ptr_ += i;
-        return *this;
-    }
-
-    Iterator &operator-(size_t i)
-    {
-        ptr_ -= i;
-        return *this;
-    }
-
-    Iterator &operator-(const Iterator &it)
-    {
-        ptr_ -= it.ptr_;
-        return *this;
-    }
-
-    Iterator &operator++()
-    {
-        ++ptr_;
-        return *this;
-    }
-
-    Iterator &operator++(int notused)
-    {
-        T *save = ptr_;
-        ptr_ += 1;
-        return save;
-    }
-
-    Iterator &operator--()
-    {
-        --ptr_;
-        return *this;
-    }
-
-    Iterator &operator--(int notused)
-    {
-        T *save = ptr_;
-        ptr_ -= 1;
-        return save;
-    }
-
-    Iterator &operator+=(size_t i)
-    {
-        ptr_ += i;
-        return *this;
-    }
-
-    template <class Y>
-    friend Iterator<Y> &operator+(size_t i, Iterator<Y> &it);
-
-    Iterator &operator-=(size_t i)
-    {
-        ptr_ -= i;
-        return *this;
-    }
-
 };
 
 template <class T>
-Iterator<T> &operator+(size_t i, Iterator<T> &it)
+class Iterator
 {
-    it.ptr_ += i;
-    return it;
-}
-
-
-template<class T, class Alloc = std::allocator<T>>
-class vector
-{
-    using size_type = size_t;
-    using value_type = T;
-    using vt_pointer = T*;
-    using reference = T&;
-    using const_reference = const T&;
-	using allocator_type = Alloc;
-    using iterator = Iterator<T>;
-    using const_iterator = const Iterator<T>;
-    using reverse_iterator = std::reverse_iterator<Iterator<T>>;
-
-    size_type size_;
-    value_type *pointer;
-    allocator_type alloc;
-
 public:
-    
-    vector(size_type count)
-        : size_(count), pointer(alloc.allocate(count)) {}
+    using It = Iterator<T>;
 
-    vector(size_type count, const value_type &defaultValue)
-        : size_(count), pointer(alloc.allocate(count))
-    {
-        for (size_type i=0; i<count; i++)
-            alloc.construct(pointer + i, defaultValue);            
+    Iterator(T* data) : values{data} { }
+
+    bool operator==(const It& other) {
+        return values == other.values;
     }
 
-    vector(std::initializer_list<value_type> init)
-        : size_(init.size())
+    bool operator!=(const It& other) {
+        return values != other.values;
+    }
+
+    bool operator<(const It& other) {
+        return values < other.values;
+    }
+
+    bool operator<=(const It& other) {
+        return values <= other.values;
+    }
+
+    bool operator>(const It& other) {
+        return values > other.values;
+    }
+
+    bool operator>=(const It& other) {
+        return values >= other.values;
+    }
+
+    It& operator++() {
+        ++values;
+        return *this;
+    }
+
+    It operator++(int) {
+        It old{*this};
+        ++values;
+        return old;
+    }
+
+    It& operator--() {
+        --values;
+        return *this;
+    }
+
+    It operator--(int) {
+        It old{*this};
+        --values;
+        return old;
+    }
+
+    It operator+(int shift) const {
+        return {values + shift};
+    }
+
+    It operator-(int shift) const {
+        return {values - shift};
+    }
+
+    It& operator+=(int shift) {
+        values += shift;
+        return *this;
+    }
+
+    It& operator-=(int shift) {
+        values -= shift;
+        return *this;
+    }
+
+    T& operator*() {
+        return *values;
+    }
+
+    const T& operator*() const  {
+        return *values;
+    }
+
+private:
+    T* values;
+};
+
+template <class T, class Alloc = Allocator<T>>
+class Vector
+{
+public:
+    using iterator = Iterator<T>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using size_type = std::size_t;
+
+    Vector()
+        : alloc{}
+        , values{alloc.allocate(4)}
+        , length{4}
+        , size_{0}
     {
-        size_type i = 0;
-        auto current = init.begin();
-        const auto end = init.end();
-        pointer = alloc.allocate(end - current);
-        while (current != end)
-        {
-            alloc.construct(pointer+i, *current);
-            i++;
-            current++;
+    }
+
+    Vector(const Vector<T>& other)
+        : alloc{}
+        , values{alloc.allocate(other.size_)}
+        , size_{0}
+        , length{other.size_}
+    {
+        for (; size_ < other.size_; ++size_) {
+            alloc.construct(values + size_, other.values[size_]);
         }
     }
-    
-    ~vector()
+
+    Vector(Vector<T> && other)
+        : alloc{}
+        , values{other.values}
+        , size_{other.size_}
+        , length{other.length}
     {
-        for (size_type i=0; i<size_; i++)
-            alloc.destroy(pointer + i);
-
-        alloc.deallocate(pointer, size_);
-    }
-    
-		bool operator==(const vector& other) const
-	{
-		if (size_ != other.size_)
-			return false;
-		if (this == &other)
-			return true;
-
-		size_type count = other.size_;
-		for (size_type i = 0; i < count; i++)
-			if (pointer[i] != other.pointer[i]){
-				return false;
-			}
-		return true;
-	}
-
-	bool operator!=(const vector& other) const
-	{
-		return !(* this == other);
-	}
-
-    iterator begin() 
-    {
-        return iterator(pointer);
+        other.values = nullptr;
+        other.size_ = 0;
+        other.length = 0;
     }
 
-    iterator end() 
+    Vector(std::initializer_list<T> l)
+        : alloc{}
+        , values{alloc.allocate(l.size())}
+        , size_{0}
+        , length{l.size()}
     {
-        return iterator(pointer + size_);
-    }
-
-     reverse_iterator rbegin() const
-    {
-        return reverse_iterator(end());
-    }
-
-    reverse_iterator rend() const
-    {
-        return reverse_iterator(begin());
-    }
-
-
-    void resize(size_type newSize)
-    {
-        vt_pointer new_pointer = alloc.allocate(newSize);
-        size_type min_size = size_;
-
-        if (newSize < min_size)
-            min_size = newSize;
-
-        for (size_type i=0; i<min_size; i++)
-            alloc.construct(new_pointer + i, pointer[i]);
-        
-        for (size_type i=0; i<size_; i++)
-            alloc.destroy(pointer + i);
-
-        alloc.deallocate(pointer, size_);
-        pointer = new_pointer;
-        size_ = newSize;
-    }
-
-    void resize(size_type newSize, const value_type &defaultValue)
-    {
-        size_type old_size = size_;
-        resize(newSize);
-        if (newSize > old_size)
-        {
-            for (size_type i=old_size; i<newSize; i++)
-                alloc.construct(pointer + i, defaultValue);
+        for (const T& value : l) {
+            alloc.construct(values + size_++, std::move(value));
         }
     }
 
-    void push_back(const value_type &value)
-    {
-        if (size_ == 0)
-        {
-            pointer = alloc.allocate(1);
-            pointer[0] = value;
+    ~Vector() {
+        for (; size_ > 0;) {
+            alloc.destroy(values + --size_);
         }
-        else
-            resize(size_ + 1, value);
+        alloc.deallocate(values, length);
     }
 
-    size_type size() const
-    {
+    Vector& operator=(const Vector& other){
+        if (&other == this) {
+            return *this;
+        }
+        T* new_data = alloc.allocate(other.size_);
+        for (size_t i = 0; i < other.size_; ++i) {
+            alloc.construct(new_data + i, other[i]);
+        }
+        for (size_t i = 0; i < size_; ++i) {
+            alloc.destroy(values + i);
+        }
+        alloc.deallocate(values, length);
+        values = new_data;
+        size_ = other.size_;
+        length = other.length;
+        return *this;
+    }
+
+    Vector& operator=(Vector&& other) {
+        for (size_t i = 0; i < size_; ++i) {
+            alloc.destroy(values + i);
+        }
+        alloc.deallocate(values, length);
+        values = other.values;
+        other.values = nullptr;
+        size_ = other.size_;
+        length = other.length;
+        return *this;
+    }
+
+    T& operator[](size_type i) {
+        return values[i];
+    }
+
+    const T& operator[](size_type i) const {
+        return values[i];
+    }
+
+    void push_back(const T& value) {
+        if (size_ >= length) {
+            reserve(size_ * 2);
+        }
+        alloc.construct(values + size_++, value);
+    }
+
+    void push_back(T&& value) {
+        if (size_ >= length) {
+            reserve(size_ * 2);
+        }
+        alloc.construct(values + size_++, std::move(value));
+    }
+
+    void pop_back() {
+        alloc.destroy(values + --size_);
+    }
+
+    template<class ... Args>
+    void emplace_back(Args&& ... args) {
+        if (size_ >= length) {
+            reserve(size_ * 2);
+        }
+        alloc.construct(values + size_++, std::forward<Args>(args)...);
+    }
+
+    bool empty() const noexcept {
+        return size_ == 0;
+    }
+
+    size_type size() const noexcept {
         return size_;
     }
 
-    bool empty() const
-    {
-        if (size_ == 0)
-            return true;
-        else
-            return false;
+    size_type capacity() const noexcept {
+        return length;
     }
 
-    void pop_back()
-    {
-        if (size_ == 0)
-            throw -1;
-
-        resize(size_ - 1);
+    void clear() noexcept {
+        for (; size_ > 0;) {
+            alloc.destroy(values + --size_);
+        }
     }
 
-    const_reference operator[](size_type pos) const
-    {
-        return pointer[pos];
+    iterator begin() {
+        return {values};
     }
 
-    reference operator[](size_type pos)
-    {
-        return pointer[pos];
+    iterator end() {
+        return {values + size_};
     }
 
-    void reserve(size_type count)
-    {
-        if (count <= size_)
+    reverse_iterator rbegin() {
+        return {end()};
+    }
+
+    reverse_iterator rend() {
+        return {begin()};
+    }
+
+    void resize(size_type new_size) {
+        if (new_size != size_) {
+            resize(new_size, T());
+        }
+    }
+
+    // don't look on strong exception guarantee, too difficult
+    void resize(size_type new_size, const T & value) {
+        if (new_size > size_) {
+            reserve(new_size);
+            for (; size_ < new_size; ++size_) {
+                alloc.construct(values + size_, value);
+            }
+        } else if (new_size < size_) {
+            for (; size_ > new_size;) {
+                alloc.destroy(values + --size_);
+            }
+        }
+    }
+
+    // try to strong exception guarantee
+    void reserve(size_type new_cap) {
+        if (new_cap <= length) {
             return;
-                
-        vt_pointer new_pointer = alloc.allocate(count);
+        }
+        T* new_data = alloc.allocate(new_cap);
 
-        for (size_type i=0; i<size_; i++)
-            alloc.construct(new_pointer + i, pointer[i]);
-        
-        for (size_type i=0; i<size_; i++)
-            alloc.destroy(pointer + i);  
-
-        alloc.deallocate(pointer, size_);
-        pointer = new_pointer;
-        size_ = count;
-    }
-
-    void erase(const_iterator where) 
-    {
-        vt_pointer new_pointer = alloc.allocate(size_-1);
-        size_type shift = 0;
-        for (size_type i=0; i<size_; i++)
-        {
-            if (&pointer[i] == &(*where))
-            {
-                shift = 1;
-                continue;
+        // if is not nothrow, standard speaks of undefined behavior
+        if constexpr (std::is_nothrow_move_constructible<T>::value
+                || !std::is_copy_constructible<T>::value) {
+            for (size_type i = 0; i < size_; ++i) {
+                alloc.construct(new_data + i, std::move(values[i]));
             }
-            alloc.construct(new_pointer + i - shift, pointer[i]);
+        } else {
+            size_type i;
+            try { // try to copy, if error, free data
+                for (i = 0; i < size_; ++i) {
+                    alloc.construct(new_data + i, values[i]);
+                }
+            } catch (...) {
+                for (; i > 0;) {
+                    alloc.destroy(new_data + --i);
+                }
+                alloc.deallocate(new_data, length);
+                throw;
+            }
+
+            for (; i > 0;) {
+                alloc.destroy(values + --i);
+            }
         }
 
-        for (size_type i=0; i<size_; i++)
-            alloc.destroy(pointer + i);
-        
-        alloc.deallocate(pointer, size_);
-        pointer = new_pointer;
-        size_ = size_ - 1;
+        alloc.deallocate(values, length);
+        values = new_data;
+        length = new_cap;
     }
 
-    iterator erase(const_iterator from, const_iterator to)
-    {
-        vt_pointer new_pointer = alloc.allocate(size_ - (&(*to)-&(*from)));
-        size_type shift = 0;
-
-        for (size_type i=0; i<size_; i++)
-        {
-            if ((&pointer[i] >= &(*from)) && (&pointer[i] < &(*to)))
-            {
-                shift += 1;
-                continue;
-            }
-            alloc.construct(new_pointer + i -shift, pointer[i]);
-        }
-        
-        for (size_type i=0; i<size_; i++)
-            alloc.destroy(pointer + i);
-
-        alloc.deallocate(pointer, size_);
-        pointer = new_pointer;
-        size_ = size_ - (&(*to) - &(*from));
-    }
-
-    void clear()
-    {
-        for (size_type i=0; i<size_; i++)
-            alloc.destroy(pointer + i);
-
-        size_ = 0;
-    }
+private:
+    Alloc alloc;
+    T* values;
+    size_type length;
+    size_type size_;
 };

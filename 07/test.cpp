@@ -1,121 +1,112 @@
-#include <iomanip>
 #include <iostream>
 #include <vector>
+#include <cassert>
 
 #include "vector.h"
 
+template<typename T1, typename T2>
+void assert_equals(const T1& lhs, const T2& rhs) {
+    assert (lhs.size() == rhs.size());
 
-using tcase = int (*)();
-std::vector<tcase> testCases = 
-    {
-        // resize() test
-        []() 
-        {
-            vector<int> vec = {1,2,3};
-            vec.resize(6, 42);
-            vector<int> answer = {1,2,3,42,42,42};
-            if (vec != answer) {
-                return 1;
-            }
-            return 0;
-        },
-        // pop_back() test
-        []() 
-        {
-            vector<int> vec = {1,2,3};
-            vec.pop_back();
-            vec.pop_back();
-            vector<int> answer = {1};
-            if (vec != answer) {
-                return 1;
-            }
-            return 0;
-        },
-        // push_back() test
-        []() 
-        {
-            vector<char> vec = {'t', 'e'};
-            vec.push_back('5');
-            vec.push_back('t');
-            vector<char> answer = {'t', 'e', '5', 't'};
-            if (vec != answer) {
-                return 1;
-            }
-            return 0;
-        },
-        // erase() test
-        []() 
-        {
-            vector<char> vec = {'t', 'e', 's', 't'};
-            vec.erase(vec.begin()+2);
-            vector<char> answer = {'t', 'e', 't'};
-            if (vec != answer) {
-                return 1;
-            }
-            return 0;
-        },
-        // strings test
-        []() 
-        {
-            vector<std::string> vec(3, "test_string");
-            vec.push_back("new_string");
-            vec.resize(6, "empyt_string");
-            vector<std::string> answer = {"test_string", "test_string", "test_string",
-                                            "new_string", "empyt_string", "empyt_string"};
-            if (vec != answer) {
-                return 1;
-            }
-            vec.clear();
-            if (!vec.empty()) {
-                return 1;
-            }
-            return 0;
-        },
-        // iterator test
-        []() 
-        {
-            int i = 5;
-            int j = 6;
-            Iterator<int> iter1(&i);
-            Iterator<int> iter2(&j);
-            swap(iter1, iter2);
-            iter2 -= 6;
-            iter2 = 6 + iter2;
-            Iterator<int> answer(&i);
-            if (iter2 != answer){
-                return 1;
-            }
-            if (!iter2[1] == *(iter2+1)){
-                return 1;
-            }
-            return 0;
-        },
-     };
-
-int main(int argc, char* argv[]){
-    if (argc != 2){
-        printf("test run incorrectly\n");
-        return 1;
+    for (size_t i = 0; i < lhs.size(); ++i) {
+        assert(lhs[i] == rhs[i]);
     }
-
-    printf("\nTesting started...\n");
-    int testCounter = 0;
-    int status;
-    for (auto& func : testCases)
-    {
-        testCounter++;
-        status = func();
-        if (status != 0)
-        {
-            printf("Test number (%i) failed with status: %i\n", testCounter, status);   
-            return 1;
-        }
-    }
-    printf("All tests passed!\n");   
-    return 0;
 }
 
 
 
 
+void Test_1()
+{
+        Vector<int> my_vec = {8, 6, 8};
+        std::vector<int> vec = {8, 6, 8};
+        assert(!my_vec.empty());
+        assert_equals(my_vec, vec);
 
+}
+
+void Test_2()
+{
+        Vector<int> my_vec = {8, 6, 8};
+        std::vector<int> vec = {8, 6, 8};
+        my_vec.pop_back(); vec.pop_back();
+        my_vec.push_back(4); vec.push_back(4);
+        assert_equals(my_vec, vec);
+
+}
+
+void Test_3()
+{
+        Vector<int> my_vec = {8, 6, 8};
+        std::vector<int> vec = {8, 6, 8};
+        my_vec.clear(); vec.clear();
+        assert(my_vec.size() == vec.size());
+        assert(my_vec.empty());
+
+}
+
+void Test_4()
+{
+        Vector<int> my_vec = {8, 6, 8};
+        std::vector<int> vec = {8, 6, 8};
+        my_vec.push_back(1); vec.push_back(1);
+        my_vec.push_back(1); vec.push_back(1);
+        my_vec.emplace_back(1); vec.emplace_back(1);
+        assert(my_vec.size() == vec.size());
+
+}
+
+void Test_5()
+{
+        Vector<int> my_vec = {8, 6, 8};
+        std::vector<int> vec = {8, 6, 8};
+        my_vec.push_back(1); vec.push_back(1);
+        my_vec.push_back(1); vec.push_back(1);
+        my_vec.emplace_back(1); vec.emplace_back(1);
+        assert(my_vec.size() == vec.size());
+
+}
+
+void Test_6()
+{
+        Vector<int> my_vec = {8, 6, 8};
+        std::vector<int> vec = {8, 6, 8};
+
+        my_vec.clear(); vec.clear();
+
+        my_vec.push_back(1); vec.push_back(1);
+        my_vec.push_back(1); vec.push_back(1);
+        my_vec.emplace_back(1); vec.emplace_back(1);
+
+        {
+            int counter = 0;
+            for (auto it = my_vec.begin(); it != my_vec.end(); ++it, ++counter) {
+                assert(*it == 1);
+            }
+            assert(counter == 3);
+        }
+
+}
+
+void Test_7()
+{
+        Vector<int> vec1 = {8, 6, 8};
+        Vector<int> vec2 = {7, 7, 7};
+        assert_equals(vec1, Vector<int>{8, 6, 8});
+        vec1 = vec2;
+        assert_equals(vec1, vec2);
+
+}
+
+int main()
+{
+    Test_1();
+    Test_2();
+    Test_3();
+    Test_4();
+    Test_5();
+    Test_6();
+    Test_7();
+    std::cout << "TESTS OK" << std::endl;
+    return 0;
+}

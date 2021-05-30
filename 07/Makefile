@@ -1,24 +1,12 @@
-CC=g++
-CFLAGS=-Wall -std=c++14
-PROJECT=vector
-LIBNAME=lib$(PROJECT).a
+CC = g++ --std=c++17
 
-all: $(LIBNAME)
+all: test
 
-$(LIBNAME): $(PROJECT).h  
-	ar rc $(LIBNAME) $(PROJECT).h 
+run_test: vector.h test.cpp
+	$(CC) test.cpp -o test
+
+test: run_test
+	./test
 
 clean:
-	rm -rf *.o $(LIBNAME) test
-	
-test: $(LIBNAME) run_test
-	./test $(LIBNAME)
-
-run_test: test.o $(LIBNAME)
-	$(CC) $(CFLAGS) -o test test.o -L -l$(PROJECT)
-
-test.o: test.cpp
-	$(CC) -c test.cpp
-	
-vgcheck: $(LIBNAME) run_test
-	valgrind --tool=memcheck --leak-check=full -s ./test $(LIBNAME)
+	rm test
